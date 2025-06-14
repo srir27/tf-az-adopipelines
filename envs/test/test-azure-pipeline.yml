@@ -19,40 +19,45 @@ stages:
       - job: tfValidate
         steps:
           - task: TerraformInstaller@1
+            displayName: 'Terraform Install'
             inputs:
               terraformVersion: '1.12.2'
-
           - script: |
               terraform init
               terraform validate
-            workingDirectory: 'envs/${{ parameters.environment }}'
+            workingDirectory: "envs/${{ parameters.environment }}"
             env:
               ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
-              
+            displayName: 'Terraform Validate'
       - job: tfPlan
+        displayName: 'Terraform Plan'
         steps:
           - script: |
               terraform init
               terraform plan -var-file="testvariables.tfvars" -out=tfplan
-            workingDirectory: 'envs/${{ parameters.environment }}'
+            workingDirectory: "envs/${{ parameters.environment }}"
+          # Setting the environment variable for the subscription ID
             env:
               ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
-          - publish: 'envs/${{ parameters.environment }}'
+          # Publishing the Terraform plan as an artifact
+          - publish: "envs/${{ parameters.environment }}/tfplan"
             artifact: testplanfile
             
   - stage: "testdeployment"
     dependsOn: "testvalidation"
-    condition: succeeded()
+    condition: and(succeeded(), eq(parameters.environment, 'test'))
     jobs:
       - job: tfApply
+        displayName: 'Downloading the plan artifact and applying it'
         steps:
           - download: current
-            artifact: testplanfile
+            artifact: testplanfile        
           - script: |
               terraform init
               terraform apply "tfplan" -auto-approve
-            workingDirectory: 'envs/${{ parameters.environment }}'
+            workingDirectory: "envs/${{ parameters.environment }}"
             env:
               ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
+            displayName: 'Terraform Apply'
 
 
