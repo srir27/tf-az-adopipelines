@@ -4,6 +4,6 @@ terraform {
     storage_account_name = "tfteststorage000"
     container_name       = "tftestcontainer000"
     key                  = "testterraform.tfstate"
-
+use_azuread_auth = false
   }
 }
