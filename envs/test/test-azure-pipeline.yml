@@ -1,0 +1,56 @@
+trigger:
+  none
+
+pool:
+  name: 'self-hosted'
+
+parameters:
+  - name: environment
+    type: string
+    default: test
+    displayName: 'Working Environment Name'
+    values:
+      - test
+      - prod
+
+
+stages:
+  - stage: "testvalidation"
+    jobs:
+      - job: tfValidate
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.12.2'
+
+          - script: |
+              terraform init
+              terraform validate
+            workingDirectory: 'envs/${{ parameters.environment }}'
+          - publish: 'envs/${{ parameters.environment }}'
+            artifact: testvalidation
+
+      - job: tfPlan
+        steps:
+          - script: |
+              terraform init
+              terraform plan -var-file="testvariables.tfvars" -var="subscription_id=$(TEST_SUBSCRIPTION_ID)" -out=tfplan
+            workingDirectory: 'envs/${{ parameters.environment }}'
+          - publish: 'envs/${{ parameters.environment }}'
+            artifact: testplanfile
+            
+  - stage: "testdeployment"
+    enviromnent: test
+    dependsOn: "testvalidation"
+    condition: succeeded()
+    jobs:
+      - job: tfApply
+        steps:
+          - download: current
+            artifact: testplanfile
+          - script: |
+              terraform init
+              terraform apply "tfplan" -auto-approve
+            workingDirectory: 'envs/${{ parameters.environment }}'
+
+
