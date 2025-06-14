@@ -2,7 +2,7 @@ trigger:
   none
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'self-hosted'
 
 stages:
   - stage: "testvalidation"
