@@ -45,7 +45,7 @@ stages:
             
   - stage: "testdeployment"
     dependsOn: "testvalidation"
-    condition: and(succeeded(), eq(parameters.environment, 'test'))
+    condition: and(succeeded(), eq('${{ parameters.environment }}', 'test'))
     jobs:
       - job: tfApply
         displayName: 'Downloading the plan artifact and applying it'
