@@ -18,28 +18,25 @@ stages:
     jobs:
       - job: tfValidate
         steps:
-          
           - task: TerraformInstaller@1
             inputs:
               terraformVersion: '1.12.2'
-          # Below script is to set the Subscription ID environment variable
-          - script: 
-            env:
-              ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
 
           - script: |
               terraform init
               terraform validate
             workingDirectory: 'envs/${{ parameters.environment }}'
-          - publish: 'envs/${{ parameters.environment }}'
-            artifact: testvalidation
-
+            env:
+              ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
+              
       - job: tfPlan
         steps:
           - script: |
               terraform init
-              terraform plan -var-file="testvariables.tfvars" -var="subscription_id=$(TESTSUBSCRIPTIONID)" -out=tfplan
+              terraform plan -var-file="testvariables.tfvars" -out=tfplan
             workingDirectory: 'envs/${{ parameters.environment }}'
+            env:
+              ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
           - publish: 'envs/${{ parameters.environment }}'
             artifact: testplanfile
             
@@ -55,5 +52,7 @@ stages:
               terraform init
               terraform apply "tfplan" -auto-approve
             workingDirectory: 'envs/${{ parameters.environment }}'
+            env:
+              ARM_SUBSCRIPTION_ID: $(TESTSUBSCRIPTIONID)
 
 
