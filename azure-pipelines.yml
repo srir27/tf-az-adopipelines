@@ -15,13 +15,15 @@ stages:
           - script: |
               terraform init
               terraform validate
+            workingDirectory: 'envs/test'
       - job: tfPlan
         steps:
           - script: 
               terraform plan -var-file="testvariables.tfvars" -var="subscription_id=$(TEST_SUSBCRIPTION_ID)" -out=tfplan
-          - publish: tfplan
+            workingDirectory: 'envs/test'
+          - publish: 'envs/test/tfplan'
             artifact: tfplanfile
-
+            
   - stage: "testdeployment"
     dependsOn: "testvalidation"
     condition: succeeded()
