@@ -13,15 +13,18 @@ parameters:
       - test
       - prod
 
-
 stages:
   - stage: "testvalidation"
     jobs:
       - job: tfValidate
         steps:
+          
           - task: TerraformInstaller@1
             inputs:
               terraformVersion: '1.12.2'
+          - script: 
+            env:
+              ARM_SUBSCRIPTION_ID: $(subscription_id)
 
           - script: |
               terraform init
@@ -34,13 +37,12 @@ stages:
         steps:
           - script: |
               terraform init
-              terraform plan -var-file="testvariables.tfvars" -var="subscription_id=$(TEST_SUBSCRIPTION_ID)" -out=tfplan
+              terraform plan -var-file="testvariables.tfvars" -var="subscription_id=$(TESTSUBSCRIPTIONID)" -out=tfplan
             workingDirectory: 'envs/${{ parameters.environment }}'
           - publish: 'envs/${{ parameters.environment }}'
             artifact: testplanfile
             
   - stage: "testdeployment"
-    enviromnent: test
     dependsOn: "testvalidation"
     condition: succeeded()
     jobs:
