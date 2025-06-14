@@ -1,0 +1,35 @@
+trigger:
+  none
+
+pool: "ubuntu-latest"
+
+stages:
+  - stage: "test-validation"
+    jobs:
+      - job: tfValidate
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.12.2'
+          - script: |
+              terraform init
+              terraform validate
+      - job: tfPlan
+        steps:
+          - script: 
+              terraform plan -var-file="testvariables.tfvars" -var="subscription_id=$(TEST_SUSBCRIPTION_ID)" -out=tfplan
+          - publish: tfplan
+            artifact: tfplanfile
+
+  - stage: "test-deployment"
+    dependsOn: "test-validation"
+    condition: succeeded()
+    jobs:
+      - job: tfApply
+        steps:
+          - download: current
+            artifact: tfplanfile
+          - script: |
+              terraform apply "tfplan" -auto-approve
+
+
