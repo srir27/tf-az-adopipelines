@@ -32,17 +32,18 @@ stages:
             inputs:
               provider: azurerm
               command: init
-              workingDirectory: 'envs/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
               backendAzureRmUseEntraIdForAuthentication: false
               backendServiceArm: '$(serviceconnection)'
               backendAzureRmResourceGroupName: '$(backendresourcegroup)'
               backendAzureRmStorageAccountName: '$(storageaccountname)'
               backendAzureRmContainerName: '$(containername)'
               backendAzureRmKey: '$(filename)'
+              
           # terraform validate
           - task: TerraformTask@5
             inputs:
               provider: azurerm
               command: validate
-              workingDirectory: 'envs/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
           
