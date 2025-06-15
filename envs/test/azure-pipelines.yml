@@ -46,4 +46,5 @@ stages:
               provider: azurerm
               command: validate
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-          
+          - script: |
+              echo "Resolved working directory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/"
