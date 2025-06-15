@@ -10,7 +10,8 @@ parameters:
     values:
       - test
       - prod
-      
+variables:
+  - group: testremotebackend
 stages:
 # This stage installs terraform, initializes, plans and publish tfplan file. 
   - stage: Plan
@@ -31,74 +32,17 @@ stages:
             inputs:
               provider: azurerm
               command: init
-              workingDirectory: envs/${{ parameters.environment }}
+              workingDirectory: 'envs/${{ parameters.environment }}'
               backendAzureRmUseEntraIdForAuthentication: false
-              backendServiceArm: test-ado-connection
-              backendAzureRmResourceGroupName: test-tfremote
-              backendAzureRmStorageAccountName: tfteststorage000
-              backendAzureRmContainerName: tftestcontainer000
-              backendAzureRmKey: ${{ parameters.environment }}terraform.tfstate
+              backendServiceArm: '$(serviceconnection)'
+              backendAzureRmResourceGroupName: '$(backendresourcegroup)'
+              backendAzureRmStorageAccountName: '$(storageaccountname)'
+              backendAzureRmContainerName: '$(containername)'
+              backendAzureRmKey: '$(filename)'
           # terraform validate
           - task: TerraformTask@5
             inputs:
               provider: azurerm
               command: validate
-              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}
-          # terraform plan
-          - task: TerraformTask@5
-            inputs:
-              provider: azurerm
-              command: plan
-              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{
-                parameters.environment }}
-              commandOptions: -var-file="testvariables.tfvars" -out=testplan
-              environmentServiceNameAzureRM: test-ado-connection
-          # Publish the tfplan artifact
-          - task: PublishPipelineArtifact@1
-            displayName: Publishing tfplan
-            inputs:
-              targetPath: $(Pipeline.Workspace)/envs/${{ parameters.environment }}
-              artifact: testplan
-              publishLocation: pipeline
-              
-# This stage dowloads the tfplan file and applies it.
-  - stage: Apply
-    dependsOn: Plan
-    condition: succeeded()
-    jobs:
-      - job: tfinstall
-        displayName: Terraform Install
-        steps:
-          - task: TerraformInstaller@1
-            displayName: Terraform Install
-            inputs:
-              terraformVersion: 1.12.2
-      - job: tfapply
-        displayName: Terraform Apply
-        steps:
-          # Download tfplan artifact
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              buildType: current
-              artifactName: testplan
-              targetPath: $(Pipeline.Workspace)/envs/${{ parameters.environment }}
-          # terraform init
-          - task: TerraformTask@5
-            inputs:
-              provider: azurerm
-              command: init
-              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}
-              backendAzureRmUseEntraIdForAuthentication: false
-              backendServiceArm: test-ado-connection
-              backendAzureRmResourceGroupName: test-tfremote
-              backendAzureRmStorageAccountName: tfteststorage000
-              backendAzureRmContainerName: tftestcontainer000
-              backendAzureRmKey: ${{ parameters.environment }}terraform.tfstate
-          # terraform apply
-          - task: TerraformTask@5
-            inputs:
-              provider: azurerm
-              command: apply
-              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}
-              commandOptions: tfplan -auto-approve
-              environmentServiceNameAzureRM: test-ado-connection
+              workingDirectory: 'envs/${{ parameters.environment }}'
+          
