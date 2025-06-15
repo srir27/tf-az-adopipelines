@@ -59,7 +59,7 @@ stages:
               provider: azurerm
               command: plan
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: -var-file="testvariables.tfvars" -out=testplan
+              commandOptions: -var-file="testvariables.tfvars" -out=planoutput.tfplan
               environmentServiceNameAzureRM: '$(serviceconnection)'
           # terraform destroy
           - task: TerraformTask@5
@@ -67,5 +67,5 @@ stages:
               provider: azurerm
               command: destroy
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: '-var-file="testvariables.tfvars" -auto-approve'
+              commandOptions: '-auto-approve -var-file="testvariables.tfvars"'
               environmentServiceNameAzureRM: '$(serviceconnection)'
