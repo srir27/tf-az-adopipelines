@@ -90,7 +90,7 @@ stages:
             inputs:
               buildType: current
               artifactName: testplan
-              targetPath:  '$(Pipeline.Workspace)/envs/${{ parameters.environment }}/'
+              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}/'
 
           # terraform init
           - task: TerraformTask@5
