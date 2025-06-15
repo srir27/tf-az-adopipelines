@@ -25,12 +25,13 @@ stages:
               terraformVersion: '1.12.2'
       - job: tfinit
         displayName: 'Terraform Initialize'
+        dependsOn: tfinstall
         steps:
           - task: TerraformTask@5
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
               backendAzureRmUseEntraIdForAuthentication: false
               backendServiceArm: 'test-ado-connection'
               backendAzureRmResourceGroupName: 'test-tfremote'
@@ -41,21 +42,22 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
       - job: tfplan
         displayName: 'Terraform Plan'
+        dependsOn: tfinit
         steps:
           - task: TerraformTask@5
             inputs:
               provider: 'azurerm'
               command: 'plan'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
               commandOptions: '-var-file="testvariables.tfvars" -out=testplan'
               environmentServiceNameAzureRM: 'test-ado-connection'
           - task: PublishPipelineArtifact@1
             displayName: 'Publishing tfplan'
             inputs:
-              targetPath: '$(Pipeline.Workspace)/env/${{ parameters.environment }}'
+              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}'
               artifact: 'testplan'
               publishLocation: 'pipeline'
   - stage: Apply
@@ -69,14 +71,14 @@ stages:
             displayName: 'Terraform Install'
             inputs:
               terraformVersion: '1.12.2'
-      - job: tfinit
+      - job: tfinit2
         displayName: 'Terraform Initialize'
         steps:
           - task: TerraformTask@5
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
               backendAzureRmUseEntraIdForAuthentication: false
               backendServiceArm: 'test-ado-connection'
               backendAzureRmResourceGroupName: 'test-tfremote'
@@ -90,17 +92,19 @@ stages:
             inputs:
               buildType: 'current'
               artifactName: 'testplan'
-              targetPath: '$(Pipeline.Workspace)/env/${{ parameters.environment }}'
+              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}'
       - job: tfapply
         displayName: 'Terraform Apply'
+        dependsOn: tfinit2
         steps:
           - task: TerraformTask@5
             inputs:
               provider: 'azurerm'
               command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/${{ parameters.environment }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
               commandOptions: 'tfplan -auto-approve'
               environmentServiceNameAzureRM: 'test-ado-connection'
+          
           
           
 
