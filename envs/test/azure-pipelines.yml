@@ -65,7 +65,7 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: Publishing tfplan
             inputs:
-              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}/'
+              targetPath: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
               artifact: testplan
               publishLocation: pipeline
 
@@ -90,7 +90,7 @@ stages:
             inputs:
               buildType: current
               artifactName: testplan
-              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}/'
+              targetPath: '$(Pipeline.Workspace)/testplan'
           # terraform init
           - task: TerraformTask@5
             inputs:
