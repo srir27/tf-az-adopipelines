@@ -31,7 +31,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
+              workingDirectory: 'envs/${{ parameters.environment }}'
               backendAzureRmUseEntraIdForAuthentication: false
               backendServiceArm: 'test-ado-connection'
               backendAzureRmResourceGroupName: 'test-tfremote'
