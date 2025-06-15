@@ -33,7 +33,7 @@ stages:
               provider: azurerm
               command: init
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              backendAzureRmUseEntraIdForAuthentication: true
+              backendAzureRmUseEntraIdForAuthentication: false
               backendServiceArm: '$(serviceconnection)'
               backendAzureRmResourceGroupName: '$(backendresourcegroup)'
               backendAzureRmStorageAccountName: '$(storageaccountname)'
