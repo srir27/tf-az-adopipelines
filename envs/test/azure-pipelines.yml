@@ -109,5 +109,5 @@ stages:
               provider: azurerm
               command: apply
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: tfplan -auto-approve
+              commandOptions: '"tfplan" -auto-approve'
               environmentServiceNameAzureRM: '$(serviceconnection)'
