@@ -37,7 +37,7 @@ stages:
               backendAzureRmResourceGroupName: test-tfremote
               backendAzureRmStorageAccountName: tfteststorage000
               backendAzureRmContainerName: tftestcontainer000
-              backendAzureRmKey: testterraform.tfstate
+              backendAzureRmKey: ${{ parameters.environment }}terraform.tfstate
           # terraform validate
           - task: TerraformTask@5
             inputs:
@@ -93,7 +93,7 @@ stages:
               backendAzureRmResourceGroupName: test-tfremote
               backendAzureRmStorageAccountName: tfteststorage000
               backendAzureRmContainerName: tftestcontainer000
-              backendAzureRmKey: testterraform.tfstate
+              backendAzureRmKey: ${{ parameters.environment }}terraform.tfstate
           # terraform apply
           - task: TerraformTask@5
             inputs:
