@@ -59,13 +59,13 @@ stages:
               provider: azurerm
               command: plan
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: -var-file="testvariables.tfvars" -out=planoutput
+              commandOptions: -var-file="testvariables.tfvars" -out=planoutput.tfplan
               environmentServiceNameAzureRM: '$(serviceconnection)'
           # Publish the tfplan artifact
           - task: PublishPipelineArtifact@1
             displayName: Publishing tfplan
             inputs:
-              targetPath: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/planoutput'
+              targetPath: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/planoutput.tfplan'
               artifact: testplan
               publishLocation: pipeline
 
@@ -110,5 +110,5 @@ stages:
               provider: azurerm
               command: apply
               workingDirectory: '$(Pipeline.Workspace)/testplan'
-              commandOptions: '"planoutput" -auto-approve'
+              commandOptions: 'planoutput.tfplan -auto-approve'
               environmentServiceNameAzureRM: '$(serviceconnection)'
