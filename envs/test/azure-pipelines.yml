@@ -110,5 +110,5 @@ stages:
               provider: azurerm
               command: apply
               workingDirectory: '$(Pipeline.Workspace)/testplan'
-              commandOptions: 'planoutput.tfplan -auto-approve'
+              commandOptions: '-auto-approve "planoutput.tfplan"'
               environmentServiceNameAzureRM: '$(serviceconnection)'
