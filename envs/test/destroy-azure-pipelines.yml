@@ -28,8 +28,8 @@ stages:
             inputs:
               terraformVersion: 1.12.2
 
-      - job: tfplan
-        displayName: Terraform Plan
+      - job: tfdestroy
+        displayName: Terraform Destroy
         dependsOn: tfinstall
         steps:
           # terraform init
@@ -59,7 +59,7 @@ stages:
               provider: azurerm
               command: plan
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: -var-file="testvariables.tfvars" -out=planoutput.tfplan
+              commandOptions: '-destroy -var-file="testvariables.tfvars" -out=destroyplan.tfplan'
               environmentServiceNameAzureRM: '$(serviceconnection)'
           # terraform destroy
           - task: TerraformTask@5
@@ -67,5 +67,5 @@ stages:
               provider: azurerm
               command: destroy
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: '-auto-approve -var-file="testvariables.tfvars"'
+              commandOptions: '-auto-approve "destroyplan.tfplan"'
               environmentServiceNameAzureRM: '$(serviceconnection)'
