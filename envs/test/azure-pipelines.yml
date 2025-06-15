@@ -90,7 +90,8 @@ stages:
             inputs:
               buildType: current
               artifactName: testplan
-              targetPath: '$(Pipeline.Workspace)/testplan'
+              targetPath:  '$(Pipeline.Workspace)/envs/${{ parameters.environment }}/'
+
           # terraform init
           - task: TerraformTask@5
             inputs:
@@ -109,5 +110,5 @@ stages:
               provider: azurerm
               command: apply
               workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}/'
-              commandOptions: '"testplan" -auto-approve'
+              commandOptions: '"$(Pipeline.Workspace)/envs/${{ parameters.environment }}/testplan" -auto-approve'
               environmentServiceNameAzureRM: '$(serviceconnection)'
