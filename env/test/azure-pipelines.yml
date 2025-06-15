@@ -55,7 +55,7 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: 'Publishing tfplan'
             inputs:
-              targetPath: '$(System.DefaultWorkingDirectory)/env/${{ parameters.environment }}'
+              targetPath: '$(Pipeline.Workspace)/env/${{ parameters.environment }}'
               artifact: 'testplan'
               publishLocation: 'pipeline'
   - stage: Apply
@@ -90,7 +90,7 @@ stages:
             inputs:
               buildType: 'current'
               artifactName: 'testplan'
-              targetPath: '$(Pipeline.Workspace)'
+              targetPath: '$(Pipeline.Workspace)/env/${{ parameters.environment }}'
       - job: tfapply
         displayName: 'Terraform Apply'
         steps:
