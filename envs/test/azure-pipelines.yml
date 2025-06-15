@@ -1,111 +1,104 @@
-trigger:
-  none
-
+---
+trigger: none
 pool:
-  name: 'self-hosted'
-
+  name: self-hosted
 parameters:
   - name: environment
     type: string
     default: test
-    displayName: 'Working Environment Name'
+    displayName: Working Environment Name
     values:
       - test
       - prod
-
+      
 stages:
+# This stage installs terraform, initializes, plans and publish tfplan file. 
   - stage: Plan
     jobs:
       - job: tfinstall
-        displayName: 'Terraform Install'
+        displayName: Terraform Install
         steps:
           - task: TerraformInstaller@1
-            displayName: 'Terraform Install'
+            displayName: Terraform Install
             inputs:
-              terraformVersion: '1.12.2'
-      - job: tfinit
-        displayName: 'Terraform Initialize'
+              terraformVersion: 1.12.2
+      - job: tfplan
+        displayName: Terraform Plan
         dependsOn: tfinstall
         steps:
+          # terraform init
           - task: TerraformTask@5
             inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: 'envs/${{ parameters.environment }}'
+              provider: azurerm
+              command: init
+              workingDirectory: envs/${{ parameters.environment }}
               backendAzureRmUseEntraIdForAuthentication: false
-              backendServiceArm: 'test-ado-connection'
-              backendAzureRmResourceGroupName: 'test-tfremote'
-              backendAzureRmStorageAccountName: 'tfteststorage000'
-              backendAzureRmContainerName: 'tftestcontainer000'
-              backendAzureRmKey: 'testterraform.tfstate'
+              backendServiceArm: test-ado-connection
+              backendAzureRmResourceGroupName: test-tfremote
+              backendAzureRmStorageAccountName: tfteststorage000
+              backendAzureRmContainerName: tftestcontainer000
+              backendAzureRmKey: testterraform.tfstate
+          # terraform validate
           - task: TerraformTask@5
             inputs:
-              provider: 'azurerm'
-              command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
-      - job: tfplan
-        displayName: 'Terraform Plan'
-        dependsOn: tfinit
-        steps:
+              provider: azurerm
+              command: validate
+              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}
+          # terraform plan
           - task: TerraformTask@5
             inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
-              commandOptions: '-var-file="testvariables.tfvars" -out=testplan'
-              environmentServiceNameAzureRM: 'test-ado-connection'
+              provider: azurerm
+              command: plan
+              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{
+                parameters.environment }}
+              commandOptions: -var-file="testvariables.tfvars" -out=testplan
+              environmentServiceNameAzureRM: test-ado-connection
+          # Publish the tfplan artifact
           - task: PublishPipelineArtifact@1
-            displayName: 'Publishing tfplan'
+            displayName: Publishing tfplan
             inputs:
-              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}'
-              artifact: 'testplan'
-              publishLocation: 'pipeline'
+              targetPath: $(Pipeline.Workspace)/envs/${{ parameters.environment }}
+              artifact: testplan
+              publishLocation: pipeline
+              
+# This stage dowloads the tfplan file and applies it.
   - stage: Apply
     dependsOn: Plan
     condition: succeeded()
     jobs:
       - job: tfinstall
-        displayName: 'Terraform Install'
+        displayName: Terraform Install
         steps:
           - task: TerraformInstaller@1
-            displayName: 'Terraform Install'
+            displayName: Terraform Install
             inputs:
-              terraformVersion: '1.12.2'
-      - job: tfinit2
-        displayName: 'Terraform Initialize'
+              terraformVersion: 1.12.2
+      - job: tfapply
+        displayName: Terraform Apply
         steps:
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
-              backendAzureRmUseEntraIdForAuthentication: false
-              backendServiceArm: 'test-ado-connection'
-              backendAzureRmResourceGroupName: 'test-tfremote'
-              backendAzureRmStorageAccountName: 'tfteststorage000'
-              backendAzureRmContainerName: 'tftestcontainer000'
-              backendAzureRmKey: 'testterraform.tfstate' 
-      - job: DownloadArtifact
-        displayName: 'Download tfplan'
-        steps:
+          # Download tfplan artifact
           - task: DownloadPipelineArtifact@2
             inputs:
-              buildType: 'current'
-              artifactName: 'testplan'
-              targetPath: '$(Pipeline.Workspace)/envs/${{ parameters.environment }}'
-      - job: tfapply
-        displayName: 'Terraform Apply'
-        dependsOn: tfinit2
-        steps:
+              buildType: current
+              artifactName: testplan
+              targetPath: $(Pipeline.Workspace)/envs/${{ parameters.environment }}
+          # terraform init
           - task: TerraformTask@5
             inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}'
-              commandOptions: 'tfplan -auto-approve'
-              environmentServiceNameAzureRM: 'test-ado-connection'
-          
-          
-          
-
-
+              provider: azurerm
+              command: init
+              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}
+              backendAzureRmUseEntraIdForAuthentication: false
+              backendServiceArm: test-ado-connection
+              backendAzureRmResourceGroupName: test-tfremote
+              backendAzureRmStorageAccountName: tfteststorage000
+              backendAzureRmContainerName: tftestcontainer000
+              backendAzureRmKey: testterraform.tfstate
+          # terraform apply
+          - task: TerraformTask@5
+            inputs:
+              provider: azurerm
+              command: apply
+              workingDirectory: $(System.DefaultWorkingDirectory)/envs/${{ parameters.environment }}
+              commandOptions: tfplan -auto-approve
+              environmentServiceNameAzureRM: test-ado-connection
