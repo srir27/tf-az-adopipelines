@@ -5,5 +5,6 @@ terraform {
     container_name       = "tftestcontainer000"
     key                  = "testterraform.tfstate"
     use_azuread_auth = false
+    use_msi = true
   }
 }
