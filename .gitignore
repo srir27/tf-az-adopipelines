@@ -42,3 +42,4 @@ terraform.rc
 # They are often environment-specific and should not be included in version control.
 backend.tf
 backend.tf.json
+*backend.tf
